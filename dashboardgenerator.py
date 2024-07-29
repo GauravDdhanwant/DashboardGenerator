@@ -3,6 +3,7 @@ import pandas as pd
 import sqlalchemy
 import matplotlib.pyplot as plt
 import seaborn as sns
+from gemini import GeminiClient
 
 # Initialize the Streamlit app
 st.set_page_config(page_title="Dashboard Generator", layout="wide")
@@ -12,7 +13,10 @@ st.sidebar.header("Dashboard Generator")
 st.sidebar.subheader("Upload Data or Connect to Database")
 
 # User input for Gemini API Key
-api_key = st.sidebar.text_input("Enter Gemini API Key", type="password")
+gemini_api_key_input = st.sidebar.text_input("Enter Gemini API Key", type="password")
+
+if not gemini_api_key_input:
+    st.error("Gemini API key is not set. Please provide it to proceed.")
 
 # User input for number of visualizations
 num_visuals = st.sidebar.slider("Number of Visualizations", 1, 10, 3)
@@ -21,6 +25,7 @@ num_visuals = st.sidebar.slider("Number of Visualizations", 1, 10, 3)
 data_source = st.sidebar.selectbox("Data Source", ["Upload File", "Connect to Database"])
 
 # Load data based on user input
+data = None
 if data_source == "Upload File":
     uploaded_file = st.sidebar.file_uploader("Choose a file")
     if uploaded_file is not None:
@@ -29,13 +34,17 @@ else:
     db_url = st.sidebar.text_input("Database URL")
     table_name = st.sidebar.text_input("Table Name")
     if st.sidebar.button("Load Data"):
-        engine = sqlalchemy.create_engine(db_url)
-        data = pd.read_sql_table(table_name, engine)
+        try:
+            engine = sqlalchemy.create_engine(db_url)
+            data = pd.read_sql_table(table_name, engine)
+        except Exception as e:
+            st.error(f"Error loading data from database: {str(e)}")
 
-# Function to get insights using Gemini API (Placeholder)
+# Function to get insights using Gemini API
 def get_insights(api_key, data):
-    # Placeholder function, assuming an actual implementation of Gemini API client
-    return {"KPIs": [{"name": "Sample KPI", "type": "bar", "x": data.columns[0], "y": data.columns[1]}]}
+    client = GeminiClient(api_key)
+    insights = client.analyze(data)
+    return insights
 
 # Function to generate visualizations
 def generate_visuals(data, insights, num_visuals):
@@ -55,9 +64,9 @@ def generate_visuals(data, insights, num_visuals):
     return visuals
 
 # Main panel for dashboard
-if "data" in locals():
+if data is not None:
     st.header("Generated Dashboard")
-    insights = get_insights(api_key, data)
+    insights = get_insights(gemini_api_key_input, data)
     visuals = generate_visuals(data, insights, num_visuals)
     for fig in visuals:
         st.pyplot(fig)
@@ -71,3 +80,4 @@ prompt_text = st.text_area("Customizations Prompt")
 if prompt_text:
     st.write(f"Customizations: {prompt_text}")
     # Implement customizations based on prompt_text
+
