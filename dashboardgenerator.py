@@ -3,20 +3,47 @@ import pandas as pd
 import sqlalchemy
 import matplotlib.pyplot as plt
 import seaborn as sns
-from gemini import GeminiClient
+import google.generativeai as genai
 
 # Initialize the Streamlit app
-st.set_page_config(page_title="Dashboard Generator", layout="wide")
+st.set_page_config(page_title="InsightsBoard", page_icon=":bar_chart:", layout="wide")
 
-# Sidebar for user inputs
-st.sidebar.header("Dashboard Generator")
-st.sidebar.subheader("Upload Data or Connect to Database")
+# Apply the theme
+st.markdown("""
+    <style>
+    .reportview-container {
+        background-color: #f5f5f5;
+    }
+    .sidebar .sidebar-content {
+        background-color: #ffffff;
+    }
+    .sidebar .sidebar-content .sidebar-header {
+        background-color: #1e3a8a;
+        color: #ffffff;
+    }
+    .stButton>button {
+        background-color: #1e3a8a;
+        color: #ffffff;
+        border-radius: 4px;
+        border: none;
+    }
+    .stImage {
+        max-width: 100%;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+st.sidebar.image("https://www.nicesoftwaresolutions.com/logo.png", width=150)
+st.sidebar.title("InsightsBoard")
 
 # User input for Gemini API Key
-gemini_api_key_input = st.sidebar.text_input("Enter Gemini API Key", type="password")
+api_key = st.sidebar.text_input("Enter Gemini API Key", type="password")
 
-if not gemini_api_key_input:
-    st.error("Gemini API key is not set. Please provide it to proceed.")
+def configure_api(api_key):
+    genai.configure(api_key=api_key)
+
+if api_key:
+    configure_api(api_key)
 
 # User input for number of visualizations
 num_visuals = st.sidebar.slider("Number of Visualizations", 1, 10, 3)
@@ -42,7 +69,7 @@ else:
 
 # Function to get insights using Gemini API
 def get_insights(api_key, data):
-    client = GeminiClient(api_key)
+    client = genai.GenerativeModel(api_key)
     insights = client.analyze(data)
     return insights
 
@@ -51,7 +78,6 @@ def generate_visuals(data, insights, num_visuals):
     visuals = []
     for i in range(num_visuals):
         kpi = insights["KPIs"][i % len(insights["KPIs"])]
-        calc_kpi = kpi  # Example calculation to make KPI more meaningful
         fig, ax = plt.subplots()
         if kpi["type"] == "bar":
             sns.barplot(x=data[kpi["x"]], y=data[kpi["y"]], ax=ax)
@@ -59,14 +85,14 @@ def generate_visuals(data, insights, num_visuals):
             sns.lineplot(x=data[kpi["x"]], y=data[kpi["y"]], ax=ax)
         elif kpi["type"] == "scatter":
             sns.scatterplot(x=data[kpi["x"]], y=data[kpi["y"]], ax=ax)
-        ax.set_title(f"{kpi['name']} (Calculated: {calc_kpi})")
+        ax.set_title(f"{kpi['name']} (Calculated)")
         visuals.append(fig)
     return visuals
 
 # Main panel for dashboard
 if data is not None:
     st.header("Generated Dashboard")
-    insights = get_insights(gemini_api_key_input, data)
+    insights = get_insights(api_key, data)
     visuals = generate_visuals(data, insights, num_visuals)
     for fig in visuals:
         st.pyplot(fig)
@@ -80,4 +106,3 @@ prompt_text = st.text_area("Customizations Prompt")
 if prompt_text:
     st.write(f"Customizations: {prompt_text}")
     # Implement customizations based on prompt_text
-
