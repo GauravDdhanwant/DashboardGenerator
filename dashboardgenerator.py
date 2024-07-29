@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import sqlalchemy
-from gemini import GeminiClient
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -33,18 +32,17 @@ else:
         engine = sqlalchemy.create_engine(db_url)
         data = pd.read_sql_table(table_name, engine)
 
-# Function to get insights using Gemini API
+# Function to get insights using Gemini API (Placeholder)
 def get_insights(api_key, data):
-    client = GeminiClient(api_key)
-    insights = client.analyze(data)
-    return insights
+    # Placeholder function, assuming an actual implementation of Gemini API client
+    return {"KPIs": [{"name": "Sample KPI", "type": "bar", "x": data.columns[0], "y": data.columns[1]}]}
 
 # Function to generate visualizations
 def generate_visuals(data, insights, num_visuals):
     visuals = []
     for i in range(num_visuals):
         kpi = insights["KPIs"][i % len(insights["KPIs"])]
-        calc_kpi = kpi * 1.1  # Example calculation to make KPI more meaningful
+        calc_kpi = kpi  # Example calculation to make KPI more meaningful
         fig, ax = plt.subplots()
         if kpi["type"] == "bar":
             sns.barplot(x=data[kpi["x"]], y=data[kpi["y"]], ax=ax)
@@ -73,4 +71,3 @@ prompt_text = st.text_area("Customizations Prompt")
 if prompt_text:
     st.write(f"Customizations: {prompt_text}")
     # Implement customizations based on prompt_text
-
