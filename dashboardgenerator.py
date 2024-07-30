@@ -34,10 +34,10 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.sidebar.image("https://www.nicesoftwaresolutions.com/logo.png", width=150)
-st.sidebar.title("InsightsBoard")
+st.sidebar.title("ChartGenerator")
 
-# User input for Gemini API Key
-api_key = st.sidebar.text_input("Enter Gemini API Key", type="password")
+# User input for Google Generative AI API Key
+api_key = st.sidebar.text_input("Enter Google Generative AI API Key", type="password")
 
 def configure_api(api_key):
     genai.configure(api_key=api_key)
@@ -67,25 +67,29 @@ else:
         except Exception as e:
             st.error(f"Error loading data from database: {str(e)}")
 
-# Function to get insights using Gemini API
+# Function to get insights using Google Generative AI
 def get_insights(api_key, data):
-    client = genai.GenerativeModel(api_key)
-    insights = client.analyze(data)
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel(model_name="gemini-1.5-pro")
+    input_prompt = f"Analyze the following data and generate insights:\n\n{data.head().to_string()}"
+    response = model.generate(prompt=input_prompt)
+    insights = response['choices'][0]['message']['content']
     return insights
 
 # Function to generate visualizations
 def generate_visuals(data, insights, num_visuals):
     visuals = []
+    insights_list = insights.split('\n')
     for i in range(num_visuals):
-        kpi = insights["KPIs"][i % len(insights["KPIs"])]
+        kpi = insights_list[i % len(insights_list)]
         fig, ax = plt.subplots()
-        if kpi["type"] == "bar":
-            sns.barplot(x=data[kpi["x"]], y=data[kpi["y"]], ax=ax)
-        elif kpi["type"] == "line":
-            sns.lineplot(x=data[kpi["x"]], y=data[kpi["y"]], ax=ax)
-        elif kpi["type"] == "scatter":
-            sns.scatterplot(x=data[kpi["x"]], y=data[kpi["y"]], ax=ax)
-        ax.set_title(f"{kpi['name']} (Calculated)")
+        if "bar" in kpi:
+            sns.barplot(x=data.columns[0], y=data.columns[1], ax=ax)
+        elif "line" in kpi:
+            sns.lineplot(x=data.columns[0], y=data.columns[1], ax=ax)
+        elif "scatter" in kpi:
+            sns.scatterplot(x=data.columns[0], y=data.columns[1], ax=ax)
+        ax.set_title(kpi)
         visuals.append(fig)
     return visuals
 
