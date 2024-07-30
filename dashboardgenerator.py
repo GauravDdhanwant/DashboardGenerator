@@ -34,7 +34,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.sidebar.image("https://www.nicesoftwaresolutions.com/logo.png", width=150)
-st.sidebar.title("ChartGenerator")
+st.sidebar.title("InsightsBoard")
 
 # User input for Google Generative AI API Key
 api_key = st.sidebar.text_input("Enter Google Generative AI API Key", type="password")
