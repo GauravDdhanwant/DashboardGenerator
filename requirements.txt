@@ -3,5 +3,5 @@ pandas
 sqlalchemy
 matplotlib
 seaborn
-gemini-api-client
+google.generativeai
 numpy
