@@ -70,10 +70,9 @@ else:
 # Function to get insights using Google Generative AI
 def get_insights(api_key, data):
     genai.configure(api_key=api_key)
-    model = genai.Model("text-bison-001")  # Ensure using correct model name
     input_prompt = f"Analyze the following data and generate insights:\n\n{data.head().to_string()}"
-    response = model.predict(prompt=input_prompt)
-    insights = response.predictions[0]
+    response = genai.generate_text(model="text-bison-001", prompt=input_prompt)
+    insights = response['candidates'][0]['output']
     return insights
 
 # Function to generate visualizations
