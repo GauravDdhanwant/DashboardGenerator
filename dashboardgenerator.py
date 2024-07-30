@@ -71,8 +71,8 @@ else:
 def get_insights(api_key, data):
     genai.configure(api_key=api_key)
     input_prompt = f"Analyze the following data and generate insights:\n\n{data.head().to_string()}"
-    response = genai.generate_text(model="models/text-bison-001", messages=[{"role": "user", "content": input_prompt}])
-    insights = response['candidates'][0]['output']
+    response = genai.models.text_bison_001.predict(prompt=input_prompt)
+    insights = response.predictions[0].text
     return insights
 
 # Function to generate visualizations
