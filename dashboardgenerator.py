@@ -71,7 +71,7 @@ else:
 def get_insights(api_key, data):
     genai.configure(api_key=api_key)
     input_prompt = f"Analyze the following data and generate insights:\n\n{data.head().to_string()}"
-    response = genai.generate_text(model="text-bison-001", prompt=input_prompt)
+    response = genai.generate_text(model="models/text-bison-001", messages=[{"role": "user", "content": input_prompt}])
     insights = response['candidates'][0]['output']
     return insights
 
@@ -95,7 +95,7 @@ def generate_visuals(data, insights, num_visuals):
 # Main panel for dashboard
 if data is not None:
     st.header("Generated Dashboard")
-    # insights = get_insights(api_key, data)
+    insights = get_insights(api_key, data)
     visuals = generate_visuals(data, insights, num_visuals)
     for fig in visuals:
         st.pyplot(fig)
