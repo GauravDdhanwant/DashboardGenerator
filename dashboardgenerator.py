@@ -95,7 +95,7 @@ def generate_visuals(data, insights, num_visuals):
 # Main panel for dashboard
 if data is not None:
     st.header("Generated Dashboard")
-    insights = get_insights(api_key, data)
+    # insights = get_insights(api_key, data)
     visuals = generate_visuals(data, insights, num_visuals)
     for fig in visuals:
         st.pyplot(fig)
