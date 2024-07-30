@@ -4,6 +4,7 @@ import sqlalchemy
 import matplotlib.pyplot as plt
 import seaborn as sns
 import google.generativeai as genai
+from vertexai.preview.language_models import TextGenerationModel
 
 # Initialize the Streamlit app
 st.set_page_config(page_title="ChartGenerator", page_icon=":bar_chart:", layout="wide")
@@ -70,9 +71,18 @@ else:
 # Function to get insights using Google Generative AI
 def get_insights(api_key, data):
     genai.configure(api_key=api_key)
+    
+    parameters = {
+        "temperature": 0.2,
+        "max_output_tokens": 256,
+        "top_p": 0.8,
+        "top_k": 40,
+    }
+
+    model = TextGenerationModel.from_pretrained("text-bison@001")
     input_prompt = f"Analyze the following data and generate insights:\n\n{data.head().to_string()}"
-    response = genai.models.text_bison_001.predict(prompt=input_prompt)
-    insights = response.predictions[0].text
+    response = model.predict(input_prompt, **parameters)
+    insights = response.text
     return insights
 
 # Function to generate visualizations
